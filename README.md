@@ -217,6 +217,10 @@ toolchain change.
 9. Provision the production administrator from a trusted local environment
    connected to the production `MONGO_URI`, if required.
 
+After changing `APP_URL` or a Vercel domain, redeploy the application and request
+fresh verification/reset emails. Links already sent retain the URL that was
+embedded when those messages were created.
+
 ## Production considerations
 
 For a larger public deployment, add:

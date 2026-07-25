@@ -34,10 +34,17 @@ export const sendEmail = async ({ email, emailType, userId }: SendEmailParams) =
     const port = Number(process.env.SMTP_PORT);
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
-    const appUrl = process.env.APP_URL || process.env.DOMAIN;
+    const vercelHost =
+        process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+    const appUrl =
+        process.env.APP_URL ||
+        (vercelHost ? `https://${vercelHost}` : process.env.DOMAIN);
 
     if (!host || !Number.isInteger(port) || port <= 0 || !user || !pass || !appUrl) {
         throw new Error("Email service is not configured");
+    }
+    if (process.env.NODE_ENV === "production" && /localhost|127\.0\.0\.1/i.test(appUrl)) {
+        throw new Error("APP_URL must use the deployed HTTPS domain in production");
     }
 
     const route = emailType === "VERIFY" ? "verifyemail" : "resetpassword";
@@ -50,10 +57,10 @@ export const sendEmail = async ({ email, emailType, userId }: SendEmailParams) =
         auth: { user, pass },
     });
 
-    return transport.sendMail({
+    const delivery = await transport.sendMail({
         from: process.env.EMAIL_FROM || "Authly <no-reply@authly.local>",
         to: email,
-        subject: `${action} — Authly`,
+        subject: `${action} — Authly [${token.slice(0, 6).toUpperCase()}]`,
         text: `${action}: ${link}\n\nThis link expires in one hour.`,
         html: `
             <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:32px;color:#172033">
@@ -66,4 +73,13 @@ export const sendEmail = async ({ email, emailType, userId }: SendEmailParams) =
             </div>
         `,
     });
+
+    console.info("Auth email accepted by SMTP:", {
+        type: emailType,
+        accepted: delivery.accepted,
+        rejected: delivery.rejected,
+        messageId: delivery.messageId,
+    });
+
+    return delivery;
 };
