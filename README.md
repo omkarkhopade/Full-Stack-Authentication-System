@@ -61,7 +61,7 @@ administrator dashboard.
 - Tailwind CSS 4
 - JSON Web Tokens
 - bcrypt
-- Nodemailer and SMTP
+- Nodemailer with Brevo SMTP
 - Axios
 - React Hot Toast
 
@@ -88,11 +88,11 @@ MONGO_URI=mongodb+srv://username:password@cluster.example.mongodb.net/auth_app
 TOKEN_SECRET=replace-with-a-long-random-secret
 APP_URL=http://localhost:3000
 
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=465
-SMTP_USER=your-sender@gmail.com
-SMTP_PASS=your-google-app-password
-EMAIL_FROM=Authly <your-sender@gmail.com>
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USER=your-brevo-smtp-login
+SMTP_PASS=your-brevo-smtp-key
+EMAIL_FROM=Authly <your-verified-sender@example.com>
 ```
 
 Generate a strong session secret with:
@@ -111,19 +111,23 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Gmail SMTP
+## Brevo transactional email
 
-For a personal or demonstration deployment:
+Authly uses Nodemailer with Brevo SMTP for verification and password-reset
+emails. In Brevo:
 
-1. Enable two-step verification on the sending Google account.
-2. Create a Google App Password.
-3. Use the 16-character App Password as `SMTP_PASS`.
-4. Use the same Gmail address for `SMTP_USER` and `EMAIL_FROM`.
+1. Add and verify the email address used by `EMAIL_FROM`.
+2. Open **SMTP & API** and copy the generated SMTP login into `SMTP_USER`.
+3. Generate a standard SMTP key and store it in `SMTP_PASS`.
+4. Use `smtp-relay.brevo.com` with port `587`.
+5. Keep SMTP IP restrictions disabled for Vercel unless the application uses a
+   fixed outbound IP.
 
-Do not use the Google account's normal password. Gmail SMTP is suitable for
-small projects but not high-volume transactional email. For production delivery
-analytics, bounce handling, and higher limits, use a provider such as Resend,
-Postmark, Amazon SES, Brevo, or SendGrid.
+The SMTP login is not the sender address, and the SMTP key is not the Brevo
+account password or an API key. Secrets must remain in environment variables.
+Brevo's transactional logs can be used to inspect delivered, deferred, blocked,
+or bounced messages. A custom sending domain with DKIM and DMARC is recommended
+for stronger production deliverability.
 
 ## Email-verification flow
 
@@ -209,9 +213,9 @@ toolchain change.
 2. Import the repository into Vercel.
 3. Add every variable from `.env.example` to the Vercel project.
 4. Set `APP_URL` to the final HTTPS deployment URL.
-5. Configure a real SMTP provider and verified sender.
+5. Configure the Brevo SMTP login, SMTP key, and verified sender.
 6. Allow the deployment environment through MongoDB Atlas Network Access.
-7. Deploy the application.
+7. Save the production environment variables and deploy the application.
 8. Test signup, verification, resend, unverified-login rejection, login, logout,
    password recovery, and admin authorization in production.
 9. Provision the production administrator from a trusted local environment
@@ -220,6 +224,10 @@ toolchain change.
 After changing `APP_URL` or a Vercel domain, redeploy the application and request
 fresh verification/reset emails. Links already sent retain the URL that was
 embedded when those messages were created.
+
+Local `.env` values are not copied to Vercel automatically. SMTP variables must
+be added separately to the Vercel Production environment, and the application
+must be redeployed after they change.
 
 ## Production considerations
 
