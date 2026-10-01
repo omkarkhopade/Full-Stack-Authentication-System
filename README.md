@@ -1,6 +1,6 @@
 # Authly
 
-Authly is a full-stack authentication and user-management application built with
+Authly is a Full-stack authentication and user-management application built with
 Next.js, TypeScript, MongoDB, and Tailwind CSS. It includes email verification,
 password recovery, secure JWT sessions, role-based authorization, and an
 administrator dashboard.
