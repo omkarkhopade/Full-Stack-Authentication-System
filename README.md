@@ -7,6 +7,8 @@ administrator dashboard.
 
 ## Features
 
+
+
 ### Authentication
 
 - User registration with normalized email and unique-account validation
@@ -42,6 +44,7 @@ administrator dashboard.
 - Protection against administrator self-deletion and self-demotion
 - Local-only initial administrator provisioning
 
+
 ### Security
 
 - Random verification and reset tokens
@@ -68,6 +71,7 @@ administrator dashboard.
 ## Local development
 
 ### 1. Install dependencies
+
 
 ```bash
 npm install
